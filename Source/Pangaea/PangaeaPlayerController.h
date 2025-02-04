@@ -55,6 +55,8 @@ protected:
 	void OnTouchTriggered();
 	void OnTouchReleased();
 
+	void OnAttackPressed();
+
 private:
 	FVector CachedDestination;
 

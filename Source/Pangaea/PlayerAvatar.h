@@ -52,13 +52,11 @@ public:
 
 	void Attack();
 	void Hit(int damage);
+	void DieProcess();
 
 	FORCEINLINE USpringArmComponent* GetSringArmComponent() const { return _springArmComponent; }
 	FORCEINLINE UCameraComponent* GetCameraComponent() const { return _cameraComponent; }
-
-protected:
-	void DieProcess();
-
+	
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
