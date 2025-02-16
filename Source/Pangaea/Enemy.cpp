@@ -14,6 +14,9 @@ AEnemy::AEnemy()
 	PrimaryActorTick.bCanEverTick = true;
 
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensor"));
+
+	static ConstructorHelpers::FObjectFinder<UBlueprint> blueprint_finder(TEXT("Blueprint'/Game/TopDown/Blueprints/BP_Hammer.BP_Hammer'"));
+	_WeaponClass = (UClass*)blueprint_finder.Object->GeneratedClass;
 }
 
 // Called when the game starts or when spawned
@@ -22,6 +25,10 @@ void AEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	_HealthPoints = HealthPoints;
+
+	_Weapon = Cast<AWeapon>(GetWorld()->SpawnActor(_WeaponClass));
+	_Weapon->Holder = this;
+	_Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("hand_rSocket"));
 }
 
 // Called every frame

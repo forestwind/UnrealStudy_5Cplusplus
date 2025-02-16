@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Weapon.h"
 #include "Enemy.generated.h"
 
 UCLASS()
@@ -37,6 +38,9 @@ protected:
 	int _HealthPoints;
 	float _AttackCountingDown;
 	APawn* _chasedTarget = nullptr;
+
+	UClass* _WeaponClass;
+	AWeapon* _Weapon;
 
 public:	
 	// Called every frame

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "DefenceTower.generated.h"
 
@@ -31,6 +31,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
+	UClass* _FireballClass;
+
 	int _HealthPoints; // 타워의 현재 생명 포인트
 	float _ReloadCountingDown;
 
@@ -55,18 +57,34 @@ public:
 protected:
 	void DestroyProcess();
 
+	class APlayerAvatar* _Target = nullptr;
+
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
+		int32 OtherBodyIndex);
+
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower Component", meta = (AllowPrivateAccess = "true"))
-	UBoxComponent* _BoxComponent;
+	USphereComponent* _SphereComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower Component", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* _MeshComponent;
 
 public:
-	FORCEINLINE UBoxComponent* GetBoxComponent() const
+	FORCEINLINE USphereComponent* GetSphereComponent() const
 	{
-		return _BoxComponent;
+		return _SphereComponent;
 	}
 
 	FORCEINLINE UStaticMeshComponent* GetMeshComponent() const
