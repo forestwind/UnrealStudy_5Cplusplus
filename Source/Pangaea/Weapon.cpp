@@ -2,13 +2,14 @@
 
 
 #include "Weapon.h"
+#include "PangaeaCharacter.h"
 #include "PlayerAvatar.h"
 #include "DefenceTower.h"
 
 // Sets default values
 AWeapon::AWeapon()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	_StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
@@ -19,7 +20,7 @@ AWeapon::AWeapon()
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	OnActorBeginOverlap.AddDynamic(this, &AWeapon::OnWeaponBeginOverlap);
 }
 
@@ -33,51 +34,61 @@ void AWeapon::Tick(float DeltaTime)
 		FQuat rotQuat = FQuat(FRotator(0.0f, 300.0f * DeltaTime, 0.0f));
 		AddActorLocalRotation(rotQuat);
 	}
-
 }
+
 
 void AWeapon::OnWeaponBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-	UE_LOG(LogTemp, Log, TEXT("Weapon overlapped"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Orange, TEXT("Weapon overlapped"));
+	//UE_LOG(LogTemp, Log, TEXT("Weapon overlapped"));
 
-	auto character = Cast<ACharacter>(OtherActor);
+	auto character = Cast<APangaeaCharacter>(OtherActor);
 
-	if (character == nullptr)
+	if (character != nullptr)
 	{
-		return;
-	}
-
-	if (Holder == nullptr)
-	{
-		auto playerAvatar = Cast<APlayerAvatar>(character);
-
-		if (playerAvatar != nullptr)
+		if (Holder == nullptr)
 		{
-			Holder = character;
+			auto playerAvatar = Cast<APlayerAvatar>(character);
 
-			TArray<AActor*> attachedActors;
-			OtherActor->GetAttachedActors(attachedActors, true);
-			for (int i = 0; i < attachedActors.Num(); ++i)
+			if (playerAvatar != nullptr)
 			{
-				attachedActors[i]->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-				attachedActors[i]->SetActorRotation(FQuat::Identity);
-				AWeapon* weapon = Cast<AWeapon>(attachedActors[i]);
-				weapon->Holder = nullptr;
+				Holder = character;
+				playerAvatar->DropWeapon();
+				playerAvatar->AttachWeapon(this);
 			}
+		}
+		else if (character != Holder &&
+			IsWithinAttackRange(0.0f, OtherActor) &&
+			character->CanBeDamaged() &&
+			Holder->IsAttacking())
+		{
+			character->Hit(Holder->Strength);
 
-			AttachToComponent(Holder->GetMesh(),
-				FAttachmentTransformRules::SnapToTargetIncludingScale, FName("hand_rSocket"));
+			if (character->IsA(APlayerAvatar::StaticClass()))
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Hit PlayerAvatar"));
+				UE_LOG(LogTemp, Log, TEXT("Hit PlayerAvatar"));
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, TEXT("Hit Enemy"));
+				UE_LOG(LogTemp, Log, TEXT("Hit Enemy"));
+			}
 		}
 	}
-	else if (IsWithinAttackRange(0.0f, OtherActor))
+	else if (Holder != nullptr && Holder->IsA(APangaeaCharacter::StaticClass()) && Holder->IsAttacking())
 	{
-		//if within attack range
-		//Deal damage to the target (PlayerAvatar or enemy)
+		auto tower = Cast<ADefenceTower>(OtherActor);
+
+		if (tower != nullptr && tower->CanBeDamaged() && IsWithinAttackRange(0.0f, tower))
+		{
+			tower->Hit(Strength);
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, TEXT("Hit Tower"));
+		}
 	}
 }
 
 bool AWeapon::IsWithinAttackRange(float AttackRange, AActor* Target)
 {
-	return false;
+	return (AttackRange <= 0.0f || FVector::Distance(Target->GetActorLocation(), GetActorLocation()) <= AttackRange);
 }
-

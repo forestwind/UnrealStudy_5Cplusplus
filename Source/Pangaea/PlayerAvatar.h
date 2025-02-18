@@ -2,66 +2,49 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "PangaeaCharacter.h"
+#include "Weapon.h"
+
 #include "PlayerAvatar.generated.h"
 
 UCLASS(Blueprintable)
-class PANGAEA_API APlayerAvatar : public ACharacter
+class PANGAEA_API APlayerAvatar : public APangaeaCharacter
 {
 	GENERATED_BODY()
 
 public:
+	// Sets default values for this character's properties
 	APlayerAvatar();
 
-	UPROPERTY(EditAnywhere, Category = "PlayerAvatar Params")
-	int HealthPoints = 500;
 
-	UPROPERTY(EditAnywhere, Category = "PlayerAvatar Params")
-	float Strength = 10;
-
-	UPROPERTY(EditAnywhere, Category = "PlayerAvatar Params")
-	float Armor = 3;
-
-	UPROPERTY(EditAnywhere, Category = "PlayerAvatar Params")
-	float AttackRange = 6.0f;
-
-	UPROPERTY(EditAnywhere, Category = "PlayerAvatar Params")
-	float AttackInterval = 1.2f;
 protected:
+	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
-	int _HealthPoints;
-	float _AttackCountingDown;
 
-public:	
+public:
 	virtual void Tick(float DeltaTime) override;
 
+	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Pangaea|PlayerCharacter", meta = (DisplayName="Get HP"))
-	int GetHealthPoints();
+	UFUNCTION(BlueprintCallable, Category = "Pangaea|PlayerAvatar")
+	void AttachWeapon(AWeapon* Weapon);
 
-	UFUNCTION(BlueprintCallable, Category = "Pangaea|PlayerCharacter")
-	bool IsKilled();
+	UFUNCTION(BlueprintCallable, Category = "Pangaea|PlayerAvatar")
+	void DropWeapon();
 
-	UFUNCTION(BlueprintCallable, Category = "Pangaea|PlayerCharacter")
-	bool CanAttack();
+	void Attack() override;
 
-	void Attack();
-	void Hit(int damage);
-	void DieProcess();
+	FORCEINLINE class UCameraComponent* GetCameraComponet() const { return _CameraComponent; }
+	FORCEINLINE class USpringArmComponent* GetSringArmComponet() const { return _SpringArmComponent; }
 
-	FORCEINLINE USpringArmComponent* GetSringArmComponent() const { return _springArmComponent; }
-	FORCEINLINE UCameraComponent* GetCameraComponent() const { return _cameraComponent; }
-	
 private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* _SpringArmComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* _springArmComponent;
+	UCameraComponent* _CameraComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* _cameraComponent;
 };

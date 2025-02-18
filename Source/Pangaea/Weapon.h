@@ -12,13 +12,13 @@ UCLASS()
 class PANGAEA_API AWeapon : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	ACharacter* Holder = nullptr;
+	class APangaeaCharacter* Holder = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Params")
 	float Strength = 10;
@@ -35,8 +35,7 @@ protected:
 
 	bool IsWithinAttackRange(float AttackRange, AActor* Target);
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
 };

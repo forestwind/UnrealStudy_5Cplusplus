@@ -1,17 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "DefenceTower.h"
-#include "PlayerAvatar.h"
-#include "Projectile.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "PlayerAvatar.h"
+#include "Projectile.h"
+#include "weapon.h"
+#include "PangaeaGameMode.h"
 
-// Sets default values
 ADefenceTower::ADefenceTower()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	_SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Collision"));
@@ -26,14 +25,15 @@ ADefenceTower::ADefenceTower()
 	_FireballClass = (UClass*)blueprint_finder.Object->GeneratedClass;
 }
 
-// Called when the game starts or when spawned
 void ADefenceTower::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorTickInterval(0.5f);
+
+	_SphereComponent->SetSphereRadius(AttackRange);
+	SetActorTickInterval(ReloadInterval);
+	_PangaeaGameMode = Cast<APangaeaGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 }
 
-// Called every frame
 void ADefenceTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -49,7 +49,7 @@ int ADefenceTower::GetHealthPoints()
 	return _HealthPoints;
 }
 
-bool ADefenceTower::IsDestory()
+bool ADefenceTower::IsDestroyed()
 {
 	return (_HealthPoints > 0.0f);
 }
@@ -61,7 +61,8 @@ bool ADefenceTower::CanFire()
 
 void ADefenceTower::Fire()
 {
-	auto fireball = Cast<AProjectile>(GetWorld()->SpawnActor(_FireballClass));
+	//auto fireball = Cast<AProjectile>(GetWorld()->SpawnActor(_FireballClass));
+	auto fireball = _PangaeaGameMode->SpawnOrGetFireball(_FireballClass);
 
 	FVector startLocation = GetActorLocation();
 	startLocation.Z += 100.0f;
@@ -72,31 +73,57 @@ void ADefenceTower::Fire()
 	fireball->SetActorRotation(rotation);
 }
 
-void ADefenceTower::DestroyProcess()
+
+void ADefenceTower::Hit(int damage)
 {
 }
 
-void ADefenceTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ADefenceTower::DestroyProcess()
 {
-	UE_LOG(LogTemp, Log, TEXT("OnBeginOverlap"));
 
+}
+
+void ADefenceTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
+{
 	APlayerAvatar* player = Cast<APlayerAvatar>(OtherActor);
 
 	if (player)
 	{
 		_Target = player;
-
-		UE_LOG(LogTemp, Log, TEXT("OnBeginOverlap checkPlayer"));
 	}
 }
 
-void ADefenceTower::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex)
-{
-	UE_LOG(LogTemp, Log, TEXT("OnEndOverlap"));
 
+void ADefenceTower::OnEndOverlap(UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent,
+	int32 OtherBodyIndex)
+{
 	if (_Target != nullptr && OtherActor == _Target)
 	{
 		_Target = nullptr;
 	}
 }
 
+void ADefenceTower::OnMeshBeginOverlap(AActor* OtherActor)
+{
+	/*AWeapon* weapon = Cast<AWeapon>(OtherActor);
+	if (weapon == nullptr || weapon->Holder == nullptr)
+	{
+		return;
+	}
+
+	APangaeaCharacter* character = weapon->Holder;
+	if (character->IsA(APlayerAvatar::StaticClass()) &&
+		character->IsAttacking() &&
+		weapon->IsWithinAttackRange(character->AttackRange, this) &&
+		CanBeDamaged())
+	{
+		Hit(weapon->Holder->Strength);
+	}*/
+}

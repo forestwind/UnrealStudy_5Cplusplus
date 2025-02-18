@@ -1,9 +1,8 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
 #include "PangaeaCharacter.generated.h"
 
 UCLASS(Blueprintable)
@@ -14,21 +13,41 @@ class APangaeaCharacter : public ACharacter
 public:
 	APangaeaCharacter();
 
-	// Called every frame.
-	virtual void Tick(float DeltaSeconds) override;
+	UPROPERTY(EditAnywhere, Category = "Pangaea Character Params")
+	int HealthPoints = 100;			//the character's max health points
 
-	/** Returns TopDownCameraComponent subobject **/
-	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	UPROPERTY(EditAnywhere, Category = "Pangaea Character Params")
+	float Strength = 5;			//the character's attack strength
 
-private:
-	/** Top down camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* TopDownCameraComponent;
+	UPROPERTY(EditAnywhere, Category = "Pangaea Character Params")
+	float Armer = 1;				//the character's defense armer
 
-	/** Camera boom positioning the camera above the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+	UPROPERTY(EditAnywhere, Category = "Pangaea Character Params")
+	float AttackRange = 200.0f;		//the character's attack range
+
+	UPROPERTY(EditAnywhere, Category = "Pangaea Character Params")
+	float AttackInterval = 3.0f;	//the character's attack invertval
+
+public:
+	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Pangaea|Character", meta = (DisplayName = "Get HP"))
+	int GetHealthPoints();			//get current health points
+
+	UFUNCTION(BlueprintCallable, Category = "Pangaea|Character")
+	bool IsKilled();				//check if the character has been killed
+
+	UFUNCTION(BlueprintCallable, Category = "Pangaea|Character")
+	bool CanAttack();
+	bool IsAttacking();
+
+	virtual void Attack();
+	virtual void Hit(int damage);
+	virtual void DieProcess();
+protected:
+	virtual void BeginPlay() override;
+
+	class UPangaeaAnimInstance* _AnimInstance;
+	int _HealthPoints;
+	float _AttackCountingDown;
 };
-

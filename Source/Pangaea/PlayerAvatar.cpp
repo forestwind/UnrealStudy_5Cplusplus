@@ -1,57 +1,55 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "PlayerAvatar.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "PlayerAvatarAnimInstance.h"
-
+#include "PangaeaAnimInstance.h"
 
 // Sets default values
 APlayerAvatar::APlayerAvatar()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
+	// Don't rotate character to camera direction
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	// Configure character movement
 	auto characterMovement = GetCharacterMovement();
 	characterMovement->bOrientRotationToMovement = true; // Rotate character to moving direction
 	characterMovement->RotationRate = FRotator(0.f, 640.f, 0.f);
 	characterMovement->bConstrainToPlane = true;
 	characterMovement->bSnapToPlaneAtStart = true;
 
-	_springArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	_springArmComponent->SetupAttachment(RootComponent);		
-	_springArmComponent->SetUsingAbsoluteRotation(true);		
-	_springArmComponent->TargetArmLength = 800.f;				 
-	_springArmComponent->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
-	_springArmComponent->bDoCollisionTest = false;
+	// Create the camera spring arm
+	_SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	_SpringArmComponent->SetupAttachment(RootComponent);		//Attach to the character root
+	_SpringArmComponent->SetUsingAbsoluteRotation(true);		//Don't rotate the arm with the character
+	_SpringArmComponent->TargetArmLength = 800.f;				//Set the arm's length 
+	_SpringArmComponent->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
+	//Set the arm's rotation (60 degree up)
+	_SpringArmComponent->bDoCollisionTest = false;				//No collision test
 
-
-	_cameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	_cameraComponent->SetupAttachment(_springArmComponent, USpringArmComponent::SocketName);
-	_cameraComponent->bUsePawnControlRotation = false;  
+	// Create the camera
+	_CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	_CameraComponent->SetupAttachment(_SpringArmComponent, USpringArmComponent::SocketName);
+	//Attach to the spring arm
+	_CameraComponent->bUsePawnControlRotation = false;			//Camera rotation is not controllable  
 }
 
-// Called when the game starts or when spawned
 void APlayerAvatar::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
-// Called every frame
 void APlayerAvatar::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	auto animInst = Cast<UPlayerAvatarAnimInstance>(GetMesh()->GetAnimInstance());
-	animInst->Speed = GetCharacterMovement()->Velocity.Size2D();
+	_AnimInstance->Speed = GetCharacterMovement()->Velocity.Size2D();
 
 	if (_AttackCountingDown == AttackInterval)
 	{
-		animInst->State = EPlayerState::Attack;
+		_AnimInstance->State = ECharacterState::Attack;
 	}
 
 	if (_AttackCountingDown > 0.0f)
@@ -67,37 +65,28 @@ void APlayerAvatar::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 }
 
-int APlayerAvatar::GetHealthPoints()
+void APlayerAvatar::AttachWeapon(AWeapon* Weapon)
 {
-	return _HealthPoints;
+	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("hand_rSocket"));
 }
 
-bool APlayerAvatar::IsKilled()
+void APlayerAvatar::DropWeapon()
 {
-	return (_HealthPoints <= 0.0f);
-}
-
-bool APlayerAvatar::CanAttack()
-{
-	auto animInst = Cast<UPlayerAvatarAnimInstance>(GetMesh()->GetAnimInstance());
-	return (_AttackCountingDown <= 0.0f && animInst->State == EPlayerState::Locomotion);
+	TArray<AActor*> attachedActors;
+	GetAttachedActors(attachedActors, true);
+	for (int i = 0; i < attachedActors.Num(); ++i)
+	{
+		attachedActors[i]->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		attachedActors[i]->SetActorRotation(FQuat::Identity);
+		AWeapon* weapon = Cast<AWeapon>(attachedActors[i]);
+		if (weapon != nullptr)
+		{
+			weapon->Holder = nullptr;
+		}
+	}
 }
 
 void APlayerAvatar::Attack()
 {
-	_AttackCountingDown = AttackInterval;
+	APangaeaCharacter::Attack();
 }
-
-void APlayerAvatar::Hit(int damage)
-{
-}
-
-void APlayerAvatar::DieProcess()
-{
-	//PrimaryActorTick.bCanEverTick = false;
-	//K2_DestroyActor();
-	//GEngine->ForceGarbageCollection(true);
-
-	Destroy();
-}
-
