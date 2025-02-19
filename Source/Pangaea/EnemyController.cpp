@@ -5,11 +5,12 @@
 
 void AEnemyController::MakeAttackDecision(APawn* targetPawn)
 {
-	auto controlledCharacter = Cast<AEnemy>(GetPawn());
+	auto enemy = Cast<AEnemy>(GetPawn());
 	auto dist = FVector::Dist2D(targetPawn->GetActorLocation(), GetPawn()->GetTargetLocation());
-	UE_LOG(LogTemp, Warning, TEXT("Distance=%d"), dist);
-	if (dist <= controlledCharacter->AttackRange && controlledCharacter->CanAttack())
+
+	if (dist <= enemy->AttackRange && enemy->CanAttack())
 	{
-		controlledCharacter->Attack();
+		StopMovement();
+		enemy->Attack_Broadcast_RPC();
 	}
 }

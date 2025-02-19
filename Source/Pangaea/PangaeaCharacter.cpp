@@ -12,9 +12,18 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 
+#include <Net/UnrealNetwork.h>
+
+void APangaeaCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(APangaeaCharacter, _HealthPoints);
+}
+
 APangaeaCharacter::APangaeaCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
+    bReplicates = true;
 }
 
 void APangaeaCharacter::BeginPlay()
@@ -23,6 +32,26 @@ void APangaeaCharacter::BeginPlay()
 
     _AnimInstance = Cast<UPangaeaAnimInstance>(GetMesh()->GetAnimInstance());
     _HealthPoints = HealthPoints;
+}
+
+void APangaeaCharacter::OnHealthPointsChanged()
+{
+    if (HealthBarWidget != nullptr)
+    {
+        float normalizedHealth = FMath::Clamp((float)_HealthPoints / HealthPoints, 0.0f, 1.0f);
+        auto healthBar = Cast<UHealthBarWidget>(HealthBarWidget);
+        healthBar->HealthProgressBar->SetPercent(normalizedHealth);
+    }
+
+    if (_AnimInstance != nullptr)
+    {
+        _AnimInstance->State = ECharacterState::Hit;
+    }
+
+    if (IsKilled())
+    {
+        PrimaryActorTick.bCanEverTick = false;
+    }
 }
 
 void APangaeaCharacter::Tick(float DeltaSeconds)
@@ -62,14 +91,10 @@ void APangaeaCharacter::Hit(int damage)
         return;
     }
 
-    _HealthPoints -= damage;
-
-
-    _AnimInstance->State = ECharacterState::Hit;
-
-    if (IsKilled())
+    if (GetNetMode() == ENetMode::NM_ListenServer && HasAuthority())
     {
-        PrimaryActorTick.bCanEverTick = false;
+        _HealthPoints -= damage;
+        OnHealthPointsChanged();
     }
 }
 
@@ -78,4 +103,9 @@ void APangaeaCharacter::DieProcess()
     PrimaryActorTick.bCanEverTick = false;
     Destroy();
     GEngine->ForceGarbageCollection(true);
+}
+
+void APangaeaCharacter::Attack_Broadcast_RPC_Implementation()
+{
+    Attack();
 }

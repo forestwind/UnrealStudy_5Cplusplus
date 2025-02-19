@@ -90,3 +90,8 @@ void APlayerAvatar::Attack()
 {
 	APangaeaCharacter::Attack();
 }
+
+void APlayerAvatar::Attack_RPC_Implementation()
+{
+	Attack_Broadcast_RPC();
+}

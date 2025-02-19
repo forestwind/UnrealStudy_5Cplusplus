@@ -38,7 +38,7 @@ void ADefenceTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (_Target != nullptr)
+	if (_Target != nullptr && GetNetMode() != NM_Client)
 	{
 		Fire();
 	}

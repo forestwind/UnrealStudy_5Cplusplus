@@ -40,6 +40,9 @@ public:
 	FORCEINLINE class UCameraComponent* GetCameraComponet() const { return _CameraComponent; }
 	FORCEINLINE class USpringArmComponent* GetSringArmComponet() const { return _SpringArmComponent; }
 
+	UFUNCTION(Server, Reliable)
+	void Attack_RPC();
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* _SpringArmComponent;

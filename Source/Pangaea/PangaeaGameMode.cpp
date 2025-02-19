@@ -3,7 +3,7 @@
 #include "PangaeaCharacter.h"
 #include "PangaeaPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
-
+#include "Containers/Queue.h"
 
 APangaeaGameMode::APangaeaGameMode()
 {

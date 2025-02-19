@@ -46,7 +46,9 @@ void AProjectile::Tick(float DeltaTime)
 			{
 				playerAvatar->Hit(Damage);
 				//Destroy();
-				_PangaeaGameMode->RecycleFireball(this);
+
+				if (HasAuthority() && _PangaeaGameMode)
+					_PangaeaGameMode->RecycleFireball(this);
 
 			}
 		}
@@ -57,7 +59,8 @@ void AProjectile::Tick(float DeltaTime)
 	else
 	{
 		//Destroy()
-		_PangaeaGameMode->RecycleFireball(this);
+		if(HasAuthority() && _PangaeaGameMode)
+			_PangaeaGameMode->RecycleFireball(this);
 	}
 }
 
