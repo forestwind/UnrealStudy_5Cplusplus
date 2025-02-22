@@ -4,6 +4,7 @@
 #include "PangaeaPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Containers/Queue.h"
+#include "PangaeaGameState.h"
 
 APangaeaGameMode::APangaeaGameMode()
 {
@@ -23,6 +24,8 @@ APangaeaGameMode::APangaeaGameMode()
 	{
 		PlayerControllerClass = PlayerControllerBPClass.Class;
 	}
+
+	GameStateClass = APangaeaGameState::StaticClass();
 }
 
 APangaeaGameMode::~APangaeaGameMode()

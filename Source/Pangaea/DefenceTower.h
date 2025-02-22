@@ -17,6 +17,8 @@ public:
 	// Sets default values for this actor's properties
 	ADefenceTower();
 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	UPROPERTY(EditAnywhere, Category = "Tower Params")
 	int HealthPoints = 100;			//the tower's max health points
 
@@ -28,13 +30,24 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Tower Params")
 	float ReloadInterval = 0.5f;	//the tower's reload interval
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UUserWidget* HealthBarWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Tower Params")
+	bool IsBase = false;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	UClass* _FireballClass;
 
+	UPROPERTY(Replicatedusing = OnHealthPointsChanged)
 	int _HealthPoints;				//the tower's current health points
+
+	UFUNCTION()
+	void OnHealthPointsChanged();
+
 	float _ReloadCountingDown;		//reload counting down
 
 
@@ -66,6 +79,8 @@ public:
 
 	void Fire();					//fire a project tile
 	void Hit(int damage);			//process when the tower is hit
+	bool IsKilled();
+
 protected:
 	void DestroyProcess();			//process when the tower is destroyed
 

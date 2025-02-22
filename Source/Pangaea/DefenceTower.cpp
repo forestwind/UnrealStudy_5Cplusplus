@@ -7,6 +7,8 @@
 #include "Projectile.h"
 #include "weapon.h"
 #include "PangaeaGameMode.h"
+#include "PangaeaGameState.h"
+#include <Net/UnrealNetwork.h>
 
 ADefenceTower::ADefenceTower()
 {
@@ -23,6 +25,12 @@ ADefenceTower::ADefenceTower()
 
 	static ConstructorHelpers::FObjectFinder<UBlueprint> blueprint_finder(TEXT("Blueprint'/Game/TopDown/Blueprints/BP_Fireball.BP_Fireball'"));
 	_FireballClass = (UClass*)blueprint_finder.Object->GeneratedClass;
+}
+
+void ADefenceTower::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ADefenceTower, _HealthPoints);
 }
 
 void ADefenceTower::BeginPlay()
@@ -73,9 +81,51 @@ void ADefenceTower::Fire()
 	fireball->SetActorRotation(rotation);
 }
 
+void ADefenceTower::OnHealthPointsChanged()
+{
+	if (HealthBarWidget != nullptr)
+	{
+		float normalizedHealth = FMath::Clamp((float)_HealthPoints / HealthPoints, 0.0f, 1.0f);
+		auto healthBar = Cast<UHealthBarWidget>(HealthBarWidget);
+		healthBar->HealthProgressBar->SetPercent(normalizedHealth);
+	}
+
+	if (IsKilled())
+	{
+		PrimaryActorTick.bCanEverTick = false;
+	}
+}
 
 void ADefenceTower::Hit(int damage)
 {
+	if (IsKilled())
+	{
+		return;
+	}
+
+	if (GetNetMode() == ENetMode::NM_ListenServer && HasAuthority())
+	{
+		_HealthPoints -= damage;
+		OnHealthPointsChanged();
+
+		if (_HealthPoints <= 0)
+		{
+			if (IsBase)
+			{
+				APangaeaGameState* gameState = Cast<APangaeaGameState>(UGameplayStatics::GetGameState(GetWorld()));
+				gameState->OnGameWin();
+			}
+			else
+			{
+				Destroy();
+			}
+		}
+	}
+}
+
+bool ADefenceTower::IsKilled()
+{
+	return (HealthPoints <= 0.0f);
 }
 
 void ADefenceTower::DestroyProcess()
