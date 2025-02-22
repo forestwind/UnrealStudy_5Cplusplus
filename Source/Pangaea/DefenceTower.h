@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Projectile.h"
 #include "DefenceTower.generated.h"
 
 UCLASS(Blueprintable)
@@ -36,11 +37,15 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Tower Params")
 	bool IsBase = false;
+
+	UPROPERTY(EditAnywhere, Category = "Tower Params")
+	TSubclassOf<AProjectile> FireballClass;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UClass* _FireballClass;
+	//UClass* _FireballClass;
 
 	UPROPERTY(Replicatedusing = OnHealthPointsChanged)
 	int _HealthPoints;				//the tower's current health points

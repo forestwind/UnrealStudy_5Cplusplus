@@ -23,8 +23,8 @@ ADefenceTower::ADefenceTower()
 	_MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
 	_MeshComponent->SetupAttachment(_SphereComponent);
 
-	static ConstructorHelpers::FObjectFinder<UBlueprint> blueprint_finder(TEXT("Blueprint'/Game/TopDown/Blueprints/BP_Fireball.BP_Fireball'"));
-	_FireballClass = (UClass*)blueprint_finder.Object->GeneratedClass;
+	//static ConstructorHelpers::FObjectFinder<UBlueprint> blueprint_finder(TEXT("Blueprint'/Game/TopDown/Blueprints/BP_Fireball.BP_Fireball'"));
+	//_FireballClass = (UClass*)blueprint_finder.Object->GeneratedClass;
 }
 
 void ADefenceTower::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
@@ -70,7 +70,8 @@ bool ADefenceTower::CanFire()
 void ADefenceTower::Fire()
 {
 	//auto fireball = Cast<AProjectile>(GetWorld()->SpawnActor(_FireballClass));
-	auto fireball = _PangaeaGameMode->SpawnOrGetFireball(_FireballClass);
+	//auto fireball = _PangaeaGameMode->SpawnOrGetFireball(_FireballClass);
+	auto fireball = _PangaeaGameMode->SpawnOrGetFireball(FireballClass);
 
 	FVector startLocation = GetActorLocation();
 	startLocation.Z += 100.0f;

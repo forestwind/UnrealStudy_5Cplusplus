@@ -9,15 +9,16 @@ AEnemy::AEnemy()
 {
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensor"));
 
-	static ConstructorHelpers::FObjectFinder<UBlueprint> blueprint_finder(TEXT("Blueprint'/Game/TopDown/Blueprints/BP_Hammer.BP_Hammer'"));
-	_WeaponClass = (UClass*)blueprint_finder.Object->GeneratedClass;
+	//static ConstructorHelpers::FObjectFinder<UBlueprint> blueprint_finder(TEXT("Blueprint'/Game/TopDown/Blueprints/BP_Hammer.BP_Hammer'"));
+	//_WeaponClass = (UClass*)blueprint_finder.Object->GeneratedClass;
 }
 
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_Weapon = Cast<AWeapon>(GetWorld()->SpawnActor(_WeaponClass));
+	//_Weapon = Cast<AWeapon>(GetWorld()->SpawnActor(_WeaponClass));
+	_Weapon = Cast<AWeapon>(GetWorld()->SpawnActor(WeaponClass));
 	_Weapon->Holder = this;
 	_Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("hand_rSocket"));
 }

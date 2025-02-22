@@ -18,7 +18,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	APawn* _chasedTarget = nullptr;
-	UClass* _WeaponClass;
+	//UClass* _WeaponClass;
 	AWeapon* _Weapon;
 
 public:
@@ -26,6 +26,10 @@ public:
 
 	void Attack() override;
 	void DieProcess() override;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AWeapon> WeaponClass;
+
 
 	UFUNCTION(BlueprintCallable, Category = "Pangaea|Enemy")
 	void Chase(APawn* targetPawn);
